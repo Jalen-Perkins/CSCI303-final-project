@@ -1,4 +1,4 @@
-name: gpgn-318
+name: grav-inversion
 channels:
 - conda-forge
 dependencies:
