@@ -30,6 +30,10 @@ def dist(r,theta,rho=-2.5, plot=False):
 
     if plot:
         plot_model(grav_pred,obs,verts)
+        plt.show()
+        # plt.scatter(obs,grav_obs['GRAV'].values)
+        # plt.scatter(obs,grav_pred)
+        # plt.show()
 
     
     return np.sum(((grav_pred-grav_obs['GRAV'].values)/grav_obs['GRAV'].values)**2)
