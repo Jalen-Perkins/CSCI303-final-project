@@ -1,6 +1,6 @@
 # CSCI303-final-project
 
-**Model Selection: identify and describe the algorithm(s) used and why; this can be using the techniques we discuss in class or other machine learning algorithm(s) of your choice.**
+**Model Selection: identify and describe the algorithm(s) used and why; this can be using the techniques we discuss in class or other machine learning algorithm(s) of your choice.** \
 We used scipy.optimize.minimize alongside a custom function to run the inversion of the anomaly geometry. The goal here is to minimize a function that returns the total distance from the modeled data to the observed data at each point.
 
 **Results & Evaluation: report the conclusions and results of your analysis including validation metrics, techniques, and visualizations.**
