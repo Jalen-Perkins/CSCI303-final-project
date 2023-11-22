@@ -4,9 +4,7 @@
 # for GPGN-303 (Gravity, Magnetics, Electrical) GPGN-304 (Gravity & Magnetics) & GPGN-314 (Applied Geophysics)
 # Updated in Python by Andy McAliley for GPGN-304 (Gravity & Magnetics)
 # Continued updates by Gavin Wilson during GPGN-314 (Applied Geophysics)
-# Added docstring by Joe Capriotti
-# fix for true limits (no need to adjust small numbers) by Joe Capriotti
-# vectorized call over observations by Joe Capriotti
+# Added docsrting by Joe Capriotti
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,63 +51,46 @@ def gpoly(obs,nodes,density):
     """
     #Blakely, 1996
     gamma = 6.672E-03 # mGal
-    obs = np.asarray(obs)
-    nodes = np.asarray(nodes)
-    
-    # append a value to obs to do a cursory test for CW vs CCW
-    # basically add a point outside and at a lower z-value than the body.
-    # it's sign should match the sign of density.
-    # This point is above the center of the object.
-    
-    obs = np.r_[obs, [[np.median(nodes[:, 0]), np.min(nodes[:, 1]) - 10]]]
-    
     numobs = len(obs)
     numnodes = len(nodes)
     grav = np.zeros(numobs)
-    
-    for i1 in range(numnodes):
-        i2 = (i1 + 1) % numnodes
-        dr1 = nodes[i1] - obs
-        dr2 = nodes[i2] - obs
-        segment = nodes[i2] - nodes[i1]
-        a = dr1[:, 1]
-        b = dr1[:, 0]
-        c = dr2[:, 1]
-        d = dr2[:, 0]
-    
-        # arctan2(dr2[:, 1], dr2[:, 0]) - arctan2(dr1[:, 1], dr1[:, 0])
-        dtheta = np.arctan2(b * c - a * d, b * d + a * c)
+    for iobs in range(numobs):
+        shiftNodes = nodes - obs[iobs]
+        sum = 0
+        # loop over segments
+        for i1 in range(numnodes):
+            i2 = i1+1
+            # last node must wrap around to first node
+            i2 = np.mod(i2,numnodes)
+            x1 = shiftNodes[i1,0]
+            x2 = shiftNodes[i2,0]
+            z1 = shiftNodes[i1,1]
+            z2 = shiftNodes[i2,1]
 
-        flat_line = segment[1] == 0
-        if flat_line:
-            grav += dr1[:, 1] * dtheta
-        else:
-            r1 = np.linalg.norm(dr1, axis=-1)
-            r2 = np.linalg.norm(dr2, axis=-1)
+            dx = x2 - x1
+            dz = z2 - z1
+            # avoid zero division
+            if abs(dz) < 1E-8:
+                # move on if points are identical
+                if abs(dx) < 1E-8:
+                    continue
+                dz = dz - dx*(1E-7)
+            alpha = dx/dz
+            beta = x1-alpha*z1
+            r1 = np.sqrt(x1**2+z1**2)
+            r2 = np.sqrt(x2**2+z2**2)
+            theta1 = np.arctan2(z1,x1)
+            theta2 = np.arctan2(z2,x2)
 
-            off_nodes = (r1 != 0) & (r2 != 0)
-            r1 = r1[off_nodes]
-            r2 = r2[off_nodes]
-            
-            alpha = segment[0]/segment[1]
-            beta = (dr1[:, 0] - alpha * dr1[:, 1])
-            
-            term1 = np.zeros_like(beta)
-            term1[off_nodes] = np.log(r2 / r1)
-            term2 = alpha * dtheta
-            factor = beta / (1 + alpha ** 2)
-
-            factor[~off_nodes] = 0.0
-            
-            grav += factor * (term1 - term2)
-    grav *= 2*gamma*density
-    
-    if np.sign(grav[-1]) != np.sign(density):
-        grav *= -1
-    return grav[:-1]
+            term1 = np.log(r2/r1)
+            term2 = alpha*(theta2-theta1)
+            factor = beta/(1+alpha**2)
+            sum = sum + factor*(term1-term2)
+        grav[iobs] = 2*gamma*density*sum
+    return grav
 
 
-def plot_model(data, obs_locs, *polygons, show_locations=True, loc_size=0.2):
+def plot_model(data, obs_locs, *polygons):
     """
     Plot geophysical data and geological models with dikes.
 
@@ -121,10 +102,6 @@ def plot_model(data, obs_locs, *polygons, show_locations=True, loc_size=0.2):
         Array of observation locations.
     *polygons : variable number of arrays
         Arrays representing the dikes as polygons.
-    show_locations : bool
-        Whether to show the observation locations on the model plot
-    loc_size : float
-        Size of the observation points (if show_locations is True).
 
     Returns
     -------
@@ -166,9 +143,6 @@ def plot_model(data, obs_locs, *polygons, show_locations=True, loc_size=0.2):
     ax_model.invert_yaxis()
     ax_model.set_ylabel('Depth (m)')
     ax_model.set_xlabel('Position (m)')
-    
-    if show_locations:
-        ax_model.scatter(obs_locs[:, 0], obs_locs[:, 1], s=loc_size)
 
     ax_data.plot(obs_locs[:, 0], data)
 
