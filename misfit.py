@@ -3,21 +3,23 @@ import pandas as pd
 from gpoly import gpoly,plot_model
 import matplotlib.pyplot as plt
 
-def get_thetas(num=4):
+
+
+def get_thetas(num=4,):
     thetas = [(i*2*np.pi/num)+(np.pi/4) for i in range(num)]
 
     return thetas
 
 
-def dist(r,theta,rho=-2.5, plot=False):
+def squares(r,theta,rho=-2.5, plot=False, z_0=1,x_0=.52):
 
     assert len(r) == len(theta), 'r and theta should be the same length'
 
     verts=[]
 
     for i in range(len(r)):
-        x_i = r[i]*np.cos(theta[i])
-        z_i = r[i]*np.sin(theta[i])+1
+        x_i = r[i]*np.cos(theta[i])+x_0
+        z_i = r[i]*np.sin(theta[i])+z_0
 
         verts.append([x_i,z_i])
 
@@ -36,7 +38,7 @@ def dist(r,theta,rho=-2.5, plot=False):
         # plt.show()
 
     
-    return np.sum(((grav_pred-grav_obs['GRAV'].values)/grav_obs['GRAV'].values)**2)
+    return np.sum(((grav_pred-grav_obs['GRAV'].values))**2)
 
 
 
