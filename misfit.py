@@ -6,12 +6,44 @@ import matplotlib.pyplot as plt
 
 
 def get_thetas(num=4,):
+    '''
+    get num# evenly spaced angles 
+
+    note: shapes created with these angles will always have an axis of symetry
+    ----
+    num: int
+    the number of verticies in your shape
+    '''
     thetas = [(i*2*np.pi/num)+(np.pi/4) for i in range(num)]
 
     return thetas
 
 
 def squares(r,theta,rho=-2.5, plot=False, z_0=1,x_0=.52):
+    '''
+    returns the total distance from the predicted values to the observed values.
+    used as part of the least squares algorithm
+
+    the function takes polar co-ordinants for each point because scipy.optimize.minimize can only work with  single dimenssional inputs.
+    ---
+    r: array, list
+    an array contaning the radii asscociated with each angle; listed clock-wise
+    
+    theta: array,list
+    an array containing the angles associated with each radius; listed clock-wise
+
+    rho: int
+    the density of the anomaly; g/cc
+
+    plot: bool
+    weather or not to plot the model
+
+    z_0: int
+    the center of the polygon (z co-ordinate); z positive down
+
+    x_0: int
+    the center of the polygon (x co-ordinate)
+    '''
 
     assert len(r) == len(theta), 'r and theta should be the same length'
 
